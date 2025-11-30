@@ -45,22 +45,6 @@ La infraestructura está basada en un modelo de **tres capas**, diseñado para a
 
 # Explicación del Script del Balanceador de Carga Apache (Bloque por Bloque)
 
-A continuación se describe qué hace cada bloque del script que configura un balanceador de carga Apache con SSL y redirección HTTP→HTTPS.
-
----
-
-¡Entendido!
-Ahora te lo entrego **TODO en un único bloque Markdown**, sin explicaciones fuera del bloque, *todo dentro del Markdown*, limpio y listo para pegar.
-
----
-
-````markdown
-# Explicación del Script del Balanceador de Carga Apache (Bloque por Bloque)
-
-A continuación se describe qué hace cada bloque del script que configura un balanceador de carga Apache con SSL y redirección HTTP→HTTPS.
-
----
-
 ## 🟦 Bloque 1: Instalación de Apache y módulos necesarios
 
 ```bash
