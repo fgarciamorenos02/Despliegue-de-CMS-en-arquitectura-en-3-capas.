@@ -296,22 +296,151 @@ Aplica todos los cambios realizados sin reiniciar el servicio.
 
 ---
 
+
+## 🟦 Bloque 1: Instalación del servidor NFS
+
+```bash
+sudo apt update
+sudo apt install nfs-kernel-server -y
+````
+
+Instala el paquete **NFS Kernel Server**, que permite compartir directorios con otras instancias en la red.
+
+---
+
+## 🟩 Bloque 2: Crear directorio compartido y asignar permisos
+
+```bash
+sudo mkdir -p /var/nfs/general
+sudo chown nobody:nogroup /var/nfs/general
+```
+
+* Crea el directorio que será compartido vía NFS.
+* Asigna permisos a `nobody:nogroup`, una práctica estándar de NFS para permitir acceso seguro.
+
+---
+
+## 🟦 Bloque 3: Configurar exportaciones NFS
+
+```bash
+echo "/var/nfs/general 192.168.30.20(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+echo "/var/nfs/general 192.168.30.24(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+```
+
+* Permite que las instancias backend (`192.168.30.20` y `192.168.30.24`) monten el directorio NFS.
+* Opciones:
+
+  * `rw`: lectura y escritura
+  * `sync`: escritura sincrónica
+  * `no_subtree_check`: evita errores al mover archivos dentro del directorio
+
+---
+
+## 🟫 Bloque 4: Descargar y descomprimir WordPress
+
+```bash
+sudo apt install unzip -y
+sudo wget -O /var/nfs/general/latest.zip https://wordpress.org/latest.zip
+sudo unzip /var/nfs/general/latest.zip -d /var/nfs/general/
+```
+
+* Instala `unzip` para descomprimir archivos.
+* Descarga la última versión de WordPress.
+* Descomprime WordPress directamente en el directorio NFS.
+
+---
+
+## 🟧 Bloque 5: Asignar permisos adecuados a WordPress
+
+```bash
+sudo chown -R www-data:www-data /var/nfs/general/wordpress
+sudo find /var/nfs/general/wordpress/ -type d -exec chmod 755 {} \;
+sudo find /var/nfs/general/wordpress/ -type f -exec chmod 644 {} \;
+```
+
+* Cambia el propietario a `www-data` (usuario de Apache).
+* Directorios: permisos `755` (lectura y ejecución para todos, escritura solo para propietario).
+* Archivos: permisos `644` (lectura para todos, escritura solo para propietario).
+* Garantiza seguridad y correcto funcionamiento de WordPress.
+
+---
+
+## 🟦 Bloque 6: Reiniciar NFS y aplicar exportaciones
+
+```bash
+sudo systemctl restart nfs-kernel-server
+sudo exportfs -a
+```
+
+
+* Reinicia el servicio NFS para aplicar cambios.
+* `exportfs -a` exporta todos los directorios configurados en `/etc/exports`.
+
+
+---
 ## Capa 3: Base de Datos (Privada)
 
 - Instancia **EC2** con **MySQL/MariaDB**.
 - Solo acepta conexiones provenientes de los servidores backend.
 - Aloja la base de datos utilizada por WordPress.
 
+## 🟦 Bloque 1: Instalación de MySQL Server
+
+```bash
+sudo apt update
+sudo apt install mysql-server -y
+````
+
+Instala el servidor MySQL en la instancia. Esto permite crear bases de datos y usuarios necesarios para WordPress.
+
 ---
 
-## Scripts de Aprovisionamiento
+## 🟩 Bloque 2: Creación de la base de datos
 
-Cada script implementa la instalación y configuración necesaria para cada componente de la arquitectura:
+```bash
+sudo mysql -e "CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
+```
 
-- Configuración del **balanceador de carga**.
-- Instalación y puesta en marcha del **servidor NFS**.
-- Preparación de los **servidores backend**.
-- Configuración del **gestor de base de datos**.
+Crea la base de datos `wordpress` con codificación **UTF-8**, recomendada para soportar caracteres especiales y acentos.
+
+---
+
+## 🟦 Bloque 3: Crear usuarios para los servidores backend
+
+```bash
+sudo mysql -e "CREATE USER 'UsuarioWordPress'@'192.168.30.20' IDENTIFIED BY '1234';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'UsuarioWordPress'@'192.168.30.20';"
+
+sudo mysql -e "CREATE USER 'UsuarioWordPress'@'192.168.30.24' IDENTIFIED BY '1234';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'UsuarioWordPress'@'192.168.30.24';"
+```
+
+* Crea un usuario `UsuarioWordPress` para cada servidor backend.
+* Otorga **todos los privilegios** sobre la base de datos `wordpress` para permitir operaciones de lectura/escritura.
+* Permite que los servidores backend puedan conectarse de manera segura desde sus IP privadas.
+
+---
+
+## 🟫 Bloque 4: Aplicar cambios de privilegios
+
+```bash
+sudo mysql -e "FLUSH PRIVILEGES;"
+```
+
+Aplica los cambios realizados a los privilegios de los usuarios sin necesidad de reiniciar MySQL.
+
+---
+
+## 🟧 Bloque 5: Configurar MySQL para aceptar conexiones desde la red interna
+
+```bash
+sudo sed -i 's/^bind-address[[:space:]]*=.*/bind-address = 192.168.30.45/' /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo systemctl restart mysql
+```
+
+* Cambia la dirección de enlace (`bind-address`) de MySQL a la IP privada de la instancia (`192.168.30.45`).
+* Esto permite conexiones desde los servidores backend.
+* Reinicia MySQL para aplicar la nueva configuración.
 
 ---
 
