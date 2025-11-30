@@ -175,8 +175,6 @@ sudo certbot --apache -d wordpressfabiogms.ddns.net --agree-tos --email fgarciam
 
 * Instala **Certbot** y el plugin de Apache.
 * Obtiene y configura automáticamente un certificado SSL para el dominio.
-* Este paso es opcional si ya cuentas con certificados o prefieres otra forma de habilitar HTTPS.
-
 ---
 
 ## Capa 2: Servidores Backend + NFS (Privada)
