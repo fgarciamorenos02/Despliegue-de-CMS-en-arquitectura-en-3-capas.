@@ -45,10 +45,6 @@ La infraestructura está basada en un modelo de **tres capas**, diseñado para a
 
 ---
 
-# Explicación del Script del Balanceador de Carga Apache (Bloque por Bloque)
-
----
-
 ## 🟦 Bloque 1: Instalación de Apache y módulos necesarios
 
 ```bash
