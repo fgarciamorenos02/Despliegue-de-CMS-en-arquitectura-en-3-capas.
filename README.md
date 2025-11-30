@@ -31,6 +31,7 @@ Se incluyen los detalles técnicos y los scripts de aprovisionamiento para cada 
 ├── webservers.sh       # Script para configurar servidores backend
 ├── sgbd.sh             # Script para configurar la base de datos
 └── README.md           # Documentación técnica
+└── img                 # Carpeta con las imágenes incluidas en el README.md
 ```
 
 ---
