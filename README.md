@@ -30,8 +30,8 @@ Se incluyen los detalles técnicos y los scripts de aprovisionamiento para cada 
 ├── nfs.sh              # Script para configurar NFS y contenido de WordPress
 ├── webservers.sh       # Script para configurar servidores backend
 ├── sgbd.sh             # Script para configurar la base de datos
-└── README.md           # Documentación técnica
-└── img                 # Carpeta con las imágenes incluidas en el README.md
+├── README.md           # Documentación técnica
+├── img                 # Carpeta con las imágenes incluidas en el README.md
 ```
 
 ---
