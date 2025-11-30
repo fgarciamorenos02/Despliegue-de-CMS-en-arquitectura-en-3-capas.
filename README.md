@@ -43,7 +43,11 @@ La infraestructura está basada en un modelo de **tres capas**, diseñado para a
   - **443** (HTTPS)
 - Se encarga de distribuir el tráfico hacia los servidores backend.
 
+---
+
 # Explicación del Script del Balanceador de Carga Apache (Bloque por Bloque)
+
+---
 
 ## 🟦 Bloque 1: Instalación de Apache y módulos necesarios
 
@@ -55,14 +59,14 @@ sudo a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests proxy_connect s
 sudo systemctl restart apache2
 ````
 
-**Descripción:**
 Este bloque instala Apache y activa los módulos necesarios para permitir:
 
 * Proxy inverso
 * Balanceo de carga
 * Conexiones SSL
 * Métodos de balanceo por peticiones
-  Después reinicia Apache para cargar los módulos.
+
+Después reinicia Apache para cargar correctamente todos los módulos.
 
 ---
 
@@ -72,8 +76,7 @@ Este bloque instala Apache y activa los módulos necesarios para permitir:
 sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/load-balancer.conf
 ```
 
-**Descripción:**
-Copia la configuración por defecto de Apache y la renombra para trabajar en una configuración personalizada para el balanceador.
+Copia la configuración por defecto de Apache y la renombra para trabajar sobre una configuración personalizada del balanceador.
 
 ---
 
@@ -94,10 +97,11 @@ sudo tee /etc/apache2/sites-available/load-balancer.conf > /dev/null <<EOF
 EOF
 ```
 
-**Descripción:**
-Este bloque crea el VirtualHost del puerto **80**.
-Su única función es redirigir todo el tráfico HTTP hacia HTTPS usando un **redirect 301**.
-Esto obliga a los usuarios a conectarse siempre mediante una conexión segura.
+Este bloque crea el VirtualHost para el puerto **80**, cuya única función es:
+
+* Redirigir todo el tráfico HTTP a HTTPS mediante redirección **301 permanente**
+
+Así se obliga a los usuarios a conectarse siempre mediante una conexión segura.
 
 ---
 
@@ -135,14 +139,12 @@ sudo tee /etc/apache2/sites-available/load-balancer-ssl.conf > /dev/null <<EOF
 EOF
 ```
 
-**Descripción:**
-Este bloque define el VirtualHost del puerto **443** con SSL habilitado usando certificados de Let's Encrypt.
-Además:
+Este bloque configura el VirtualHost para **HTTPS (443)** con SSL, usando certificados de Let’s Encrypt. También:
 
-* Crea un clúster de balanceo `mycluster`.
-* Añade 2 servidores backend.
-* Habilita sticky sessions para mantener la sesión del usuario en el mismo servidor.
-* Redirige todas las peticiones hacia los servidores backend mediante `ProxyPass`.
+* Crea un clúster de balanceo `mycluster`
+* Añade dos servidores backend con rutas distintas
+* Habilita **sticky sessions**
+* Redirige todas las peticiones entrantes hacia los servidores backend usando `ProxyPass`
 
 ---
 
@@ -152,8 +154,7 @@ Además:
 sudo a2dissite 000-default.conf
 ```
 
-**Descripción:**
-Deshabilita la configuración por defecto de Apache para evitar conflictos con la configuración personalizada del balanceador.
+Desactiva la configuración por defecto de Apache, evitando conflictos con la configuración del balanceador.
 
 ---
 
@@ -164,8 +165,7 @@ sudo a2ensite load-balancer.conf
 sudo a2ensite load-balancer-ssl.conf
 ```
 
-**Descripción:**
-Activa las configuraciones HTTP y HTTPS del nuevo balanceador.
+Activa los sitios de configuración HTTP y HTTPS del balanceador.
 
 ---
 
@@ -175,8 +175,7 @@ Activa las configuraciones HTTP y HTTPS del nuevo balanceador.
 sudo systemctl reload apache2
 ```
 
-**Descripción:**
-Recarga la configuración de Apache para aplicar todos los cambios realizados sin detener el servicio.
+Recarga Apache para aplicar todos los cambios sin necesidad de detener el servicio.
 
 ---
 
