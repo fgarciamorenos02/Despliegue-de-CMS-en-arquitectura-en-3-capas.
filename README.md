@@ -181,6 +181,118 @@ Recarga Apache para aplicar todos los cambios sin necesidad de detener el servic
 - Un servidor **NFS** encargado de:
   - Compartir los archivos del sitio WordPress.
   - Mantener el contenido sincronizado entre los servidores web.
+ 
+## 🟦 Bloque 1: Instalación de paquetes necesarios
+
+```bash
+sudo apt update
+sudo apt install nfs-common apache2 php libapache2-mod-php php-mysql php-curl php-gd php-xml php-mbstring php-xmlrpc php-zip php-soap php-intl -y
+````
+
+Este bloque instala:
+
+* Apache2 como servidor web.
+* PHP y extensiones necesarias para WordPress.
+* Cliente NFS (`nfs-common`) para montar sistemas de archivos compartidos.
+
+---
+
+## 🟩 Bloque 2: Creación del directorio NFS local
+
+```bash
+sudo mkdir -p /nfs/general
+```
+
+Crea el directorio donde se montará el recurso NFS compartido.
+
+---
+
+## 🟦 Bloque 3: Montaje del NFS compartido
+
+```bash
+sudo mount 192.168.30.23:/var/nfs/general /nfs/general
+```
+
+Monta el directorio NFS remoto (`192.168.30.23:/var/nfs/general`) en el directorio local `/nfs/general`.
+Esto permite que múltiples servidores web compartan los mismos archivos de WordPress.
+
+---
+
+## 🟫 Bloque 4: Configuración del montaje automático
+
+```bash
+echo "192.168.30.23:/var/nfs/general  /nfs/general  nfs _netdev,auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0" | sudo tee -a /etc/fstab
+```
+
+Agrega el NFS al archivo `/etc/fstab` para que se monte automáticamente al iniciar el sistema.
+Opciones usadas:
+
+* `_netdev`: esperar a que la red esté disponible
+* `auto`: montar al arranque
+* `nofail`: no fallar si no está disponible
+* `noatime`, `nolock`, `intr`, `tcp`, `actimeo=1800`: optimización y confiabilidad
+
+---
+
+## 🟧 Bloque 5: Copia de la configuración de Apache para WordPress
+
+```bash
+sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/wordpress.conf
+```
+
+Copia la configuración por defecto de Apache para crear un VirtualHost específico para WordPress.
+
+---
+
+## 🟦 Bloque 6: Configuración del VirtualHost para WordPress
+
+```bash
+sudo tee /etc/apache2/sites-available/wordpress.conf > /dev/null <<EOF
+<VirtualHost *:80>
+    ServerName wordpressfabiogms.ddns.net
+    ServerAdmin webmaster@localhost
+    DocumentRoot /nfs/general/wordpress/
+    
+    <Directory /nfs/general/wordpress>
+        Options +FollowSymlinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
+```
+
+Define un VirtualHost en el puerto **80** para WordPress:
+
+* `DocumentRoot` apunta al directorio NFS compartido.
+* `AllowOverride All` permite usar `.htaccess`.
+* `Options +FollowSymlinks` habilita enlaces simbólicos.
+* Logs separados de Apache (`error.log` y `access.log`).
+
+---
+
+## 🟥 Bloque 7: Desactivar el sitio por defecto y activar WordPress
+
+```bash
+sudo a2dissite 000-default.conf
+sudo /usr/sbin/a2ensite wordpress.conf
+```
+
+* Desactiva la configuración por defecto de Apache.
+* Activa el VirtualHost para WordPress.
+
+---
+
+## 🟦 Bloque 8: Recargar Apache
+
+```bash
+sudo systemctl reload apache2
+```
+
+Aplica todos los cambios realizados sin reiniciar el servicio.
 
 ---
 
