@@ -439,6 +439,7 @@ sudo systemctl restart mysql
 - Elige la opción **VPC con subredes públicas y privadas**.  
 - Define el bloque CIDR para la red; por ejemplo, puedes usar **10.0.0.0/16** o, en este caso, **192.168.30.0/24**.
 
+![VPC](img/vpc.png)
 ---
 
 ## 2. **Configurar subredes**
