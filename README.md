@@ -164,7 +164,7 @@ sudo systemctl reload apache2
 
 ---
 
-## ⚪ Opcional: Configurar SSL con Let's Encrypt
+### ⚪ Opcional: Configurar SSL con Certbot
 
 ```bash
 sudo apt update
