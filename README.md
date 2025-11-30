@@ -448,6 +448,9 @@ sudo systemctl restart mysql
 Crea una subred pública destinada al balanceador de carga.  
 Rango utilizado: **192.168.30.0/28**.
 
+![VPC](img/subred-publica.png)
+
+
 ### **Subredes privadas**
 
 - **Red interna 1:** destinada a los servidores web y al servidor NFS.  
