@@ -318,11 +318,22 @@ sudo apt update
 sudo apt install mysql-server -y
 ```
 
+* Actualiza la lista de paquetes disponibles.
+* Instala MySQL Server en la instancia EC2, necesario para alojar la base de datos de WordPress.
+
+---
+
 #### 🟩 Bloque 2: Crear base de datos
 
 ```bash
 sudo mysql -e "CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
 ```
+
+* Crea la base de datos llamada `wordpress`.
+* Usa codificación UTF-8 (`utf8`) para soportar caracteres especiales y acentos.
+* Collation `utf8_unicode_ci` permite comparaciones correctas de texto internacional.
+
+---
 
 #### 🟦 Bloque 3: Crear usuarios backend
 
@@ -334,11 +345,22 @@ sudo mysql -e "CREATE USER 'UsuarioWordPress'@'192.168.30.24' IDENTIFIED BY '123
 sudo mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'UsuarioWordPress'@'192.168.30.24';"
 ```
 
+* Crea un usuario MySQL `UsuarioWordPress` para cada servidor backend.
+* Asigna **todos los privilegios** sobre la base de datos `wordpress` (lectura, escritura, modificación, borrado).
+* Limita la conexión a la IP privada de cada servidor backend (`192.168.30.20` y `192.168.30.24`) para mayor seguridad.
+
+---
+
 #### 🟫 Bloque 4: Aplicar cambios de privilegios
 
 ```bash
 sudo mysql -e "FLUSH PRIVILEGES;"
 ```
+
+* Aplica los cambios realizados en los privilegios sin necesidad de reiniciar MySQL.
+* Garantiza que los nuevos usuarios y permisos estén activos inmediatamente.
+
+---
 
 #### 🟧 Bloque 5: Configurar MySQL para conexiones internas
 
@@ -346,9 +368,6 @@ sudo mysql -e "FLUSH PRIVILEGES;"
 sudo sed -i 's/^bind-address[[:space:]]*=.*/bind-address = 192.168.30.45/' /etc/mysql/mysql.conf.d/mysqld.cnf
 sudo systemctl restart mysql
 ```
-
-* Permite conexiones solo desde los servidores backend.
-* Reinicia MySQL para aplicar los cambios.
 
 ---
 
