@@ -429,5 +429,91 @@ sudo systemctl restart mysql
 
 ---
 
+# 🛠️ Configuración de Red en AWS
 
+---
 
+## 1. **Crear una VPC personalizada**
+
+- Ve al servicio **VPC** y selecciona **Crear VPC**.  
+- Elige la opción **VPC con subredes públicas y privadas**.  
+- Define el bloque CIDR para la red; por ejemplo, puedes usar **10.0.0.0/16** o, en este caso, **192.168.30.0/24**.
+
+---
+
+## 2. **Configurar subredes**
+
+### **Subred pública**
+Crea una subred pública destinada al balanceador de carga.  
+Rango utilizado: **192.168.30.0/28**.
+
+### **Subredes privadas**
+
+- **Red interna 1:** destinada a los servidores web y al servidor NFS.  
+  Rango utilizado: **192.168.30.16/28**.
+
+- **Red interna 2:** destinada a la base de datos.  
+  Rango utilizado: **192.168.30.32/28**.
+
+---
+
+## 3. **Configurar el Internet Gateway**
+
+- Crea un **Internet Gateway** y asígnalo a la VPC para permitir el acceso a Internet desde la subred pública.
+
+---
+
+## 4. **Configurar las Tablas de Enrutamiento**
+
+### **Tabla de enrutamiento pública**
+Asocia la subred pública a una tabla de rutas que incluya una salida hacia el **Internet Gateway**, de modo que permita el acceso a Internet. *(rutas públicas)*
+
+### **Tabla de enrutamiento privada**
+Vincula las subredes privadas a una tabla de rutas privada que tenga una salida hacia el **NAT Gateway**, permitiendo que los recursos internos realicen conexiones hacia el exterior sin ser accesibles desde Internet.
+
+---
+
+## 5. **Crear Grupos de Seguridad**
+
+### **Balanceador de carga**
+Configura un grupo de seguridad que permita:  
+- Tráfico **HTTP (80)** y **HTTPS (443)** desde cualquier origen.  
+- Acceso **SSH (22)** desde cualquier ubicación si es necesario para administración.  
+*(reglas de entrada para el balanceador)*
+
+### **Servidores Backend (Webservers)**
+Crea un grupo de seguridad que acepte:  
+- Tráfico **HTTP (80)** únicamente desde el grupo de seguridad del balanceador de carga.  
+- Acceso al servicio **NFS (2049)** desde el servidor NFS.  
+*(reglas de entrada para los webservers)*
+
+### **Servidor NFS**
+Define un grupo de seguridad que permita:  
+- Conexiones **NFS (2049)** únicamente desde los servidores backend.  
+*(reglas de entrada para NFS)*
+
+### **Base de Datos**
+Configura un grupo de seguridad que acepte:  
+- Conexiones **MySQL (3306)** exclusivamente desde los servidores backend.
+
+---
+
+## 6. **Crear Instancias EC2**
+
+### **Balanceador de carga**
+Lanza la instancia correspondiente (o el servicio que actúe como balanceador) dentro de la **subred pública**.
+
+### **Servidores Web y NFS**
+Despliega tanto los **web servers** como el **servidor NFS** en la **subred privada 1**.
+
+### **Base de datos**
+Crea la instancia destinada a la **base de datos** dentro de la **subred privada 2**.
+
+---
+
+## 7. **Asignar una IP Elástica al Balanceador**
+
+- Reserva una **IP Elástica (EIP)** desde el panel de EC2.  
+- Asígnala a la instancia que funcionará como **balanceador de carga**, asegurando que tenga una dirección pública fija para el acceso externo.
+
+---
