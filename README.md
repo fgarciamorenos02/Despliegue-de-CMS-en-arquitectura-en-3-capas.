@@ -440,7 +440,9 @@ sudo systemctl restart mysql
 - Define el bloque CIDR para la red; por ejemplo, puedes usar **10.0.0.0/16** o, en este caso, **192.168.30.0/24**.
 
 ![VPC](img/vpc.png)
+
 ---
+
 
 ## 2. **Configurar subredes**
 
@@ -456,14 +458,20 @@ Rango utilizado: **192.168.30.0/28**.
 - **Red interna 1:** destinada a los servidores web y al servidor NFS.  
   Rango utilizado: **192.168.30.16/28**.
 
+![Subred](img/subred-privada.png)
+
 - **Red interna 2:** destinada a la base de datos.  
   Rango utilizado: **192.168.30.32/28**.
+
+![Subred](img/subred-privada1.png)
 
 ---
 
 ## 3. **Configurar el Internet Gateway**
 
 - Crea un **Internet Gateway** y asígnalo a la VPC para permitir el acceso a Internet desde la subred pública.
+
+![Gateway](img/gateway.png)
 
 ---
 
@@ -472,8 +480,12 @@ Rango utilizado: **192.168.30.0/28**.
 ### **Tabla de enrutamiento pública**
 Asocia la subred pública a una tabla de rutas que incluya una salida hacia el **Internet Gateway**, de modo que permita el acceso a Internet. *(rutas públicas)*
 
+![Tabladeenrutamiento](img/tablapublica.png)
+
 ### **Tabla de enrutamiento privada**
 Vincula las subredes privadas a una tabla de rutas privada que tenga una salida hacia el **NAT Gateway**, permitiendo que los recursos internos realicen conexiones hacia el exterior sin ser accesibles desde Internet.
+
+![Tabladeenrutamiento](img/tablaprivada.png)
 
 ---
 
@@ -485,20 +497,30 @@ Configura un grupo de seguridad que permita:
 - Acceso **SSH (22)** desde cualquier ubicación si es necesario para administración.  
 *(reglas de entrada para el balanceador)*
 
+![GrupodeSeguridad](img/grupobalanceador.png)
+
 ### **Servidores Backend (Webservers)**
 Crea un grupo de seguridad que acepte:  
-- Tráfico **HTTP (80)** únicamente desde el grupo de seguridad del balanceador de carga.  
+- Tráfico **HTTP (80)** únicamente desde el grupo de seguridad del balanceador de carga.
+- Tráfico **HTTPS (443)** desde cualquier origen.  
 - Acceso al servicio **NFS (2049)** desde el servidor NFS.  
 *(reglas de entrada para los webservers)*
 
+![GrupodeSeguridad](img/gruposw.png)
+
 ### **Servidor NFS**
 Define un grupo de seguridad que permita:  
-- Conexiones **NFS (2049)** únicamente desde los servidores backend.  
+- Conexiones **NFS (2049)** únicamente desde los servidores backend.
+- Permite la comunicación **NFS (puerto 111 UDP)** restringiéndola solo al tráfico procedente del grupo de seguridad de los servidores web.
 *(reglas de entrada para NFS)*
+
+![GrupodeSeguridad](img/gruponfs.png)
 
 ### **Base de Datos**
 Configura un grupo de seguridad que acepte:  
 - Conexiones **MySQL (3306)** exclusivamente desde los servidores backend.
+
+![GrupodeSeguridad](img/grupomysql.png)
 
 ---
 
@@ -520,4 +542,35 @@ Crea la instancia destinada a la **base de datos** dentro de la **subred privada
 - Reserva una **IP Elástica (EIP)** desde el panel de EC2.  
 - Asígnala a la instancia que funcionará como **balanceador de carga**, asegurando que tenga una dirección pública fija para el acceso externo.
 
+![IpElastica](img/ipelastica.png)
+
 ---
+
+## Despliegue
+
+1. **Aprovisionar la infraestructura** en AWS siguiendo todos los pasos descritos anteriormente (VPC, subredes, tablas de enrutamiento, grupos de seguridad e instancias EC2).
+
+2. **Conectarse vía SSH** a cada instancia para ejecutar los scripts de aprovisionamiento correspondientes:
+
+```bash
+./balanceador.sh
+./nfs.sh
+./sw.sh
+./mysql.sh
+````
+
+3. **Verificar** que todas las instancias EC2 estén iniciadas y funcionando correctamente.
+
+## Resultado
+
+A través de un navegador, nos conectaremos a nuestra aplicación utilizando la URL: **https://wordpressfabiogms.ddns.net/**.  
+Al acceder, podremos visualizar la página principal de WordPress desplegada en nuestra arquitectura de 3 capas, comprobando que el balanceador de carga dirige correctamente el tráfico hacia los servidores backend, que el contenido se sirve desde el NFS compartido, y que la base de datos responde de manera segura desde la subred privada.
+
+![Wordpress](img/wordpress.png)
+
+## Conclusión
+
+En este proyecto se logró desplegar un entorno WordPress en AWS utilizando una arquitectura de tres capas, lo que permite separar de manera eficiente las funciones de presentación, lógica de negocio y almacenamiento de datos.  
+El balanceador de carga asegura la distribución uniforme del tráfico entre los servidores backend, mientras que el uso de NFS permite compartir contenido de forma centralizada y coherente. La base de datos permanece protegida en una subred privada, garantizando seguridad y control de acceso.  
+
+El uso de scripts de aprovisionamiento automatiza la instalación y configuración de cada componente, ofreciendo un despliegue repetible y confiable. Esta infraestructura no solo asegura disponibilidad y rendimiento, sino que también facilita la escalabilidad y el mantenimiento continuo del sitio web.
