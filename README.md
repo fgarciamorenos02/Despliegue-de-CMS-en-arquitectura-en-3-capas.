@@ -28,3 +28,49 @@ La estructura del proyecto es la siguiente:
 ├── webservers.sh       # Script para configurar los servidores backend.
 ├── sgbd.sh             # Script para configurar la base de datos.
 └── README.md           # Documento técnico y explicativo.
+```
+# Arquitectura de Red en AWS
+
+La infraestructura está basada en un modelo de **tres capas**, diseñado para asegurar seguridad, escalabilidad y alta disponibilidad en un entorno WordPress desplegado en AWS.
+
+---
+
+## Capa 1: Balanceador de Carga (Pública)
+
+- Instancia **EC2** con **Apache** configurado como balanceador de carga.
+- Acceso permitido únicamente desde Internet por los puertos:
+  - **80** (HTTP)
+  - **443** (HTTPS)
+- Se encarga de distribuir el tráfico hacia los servidores backend.
+
+---
+
+## Capa 2: Servidores Backend + NFS (Privada)
+
+- Dos instancias **EC2** funcionando como servidores backend donde se ejecuta WordPress.
+- Un servidor **NFS** encargado de:
+  - Compartir los archivos del sitio WordPress.
+  - Mantener el contenido sincronizado entre los servidores web.
+
+---
+
+## Capa 3: Base de Datos (Privada)
+
+- Instancia **EC2** con **MySQL/MariaDB**.
+- Solo acepta conexiones provenientes de los servidores backend.
+- Aloja la base de datos utilizada por WordPress.
+
+---
+
+## Scripts de Aprovisionamiento
+
+Cada script implementa la instalación y configuración necesaria para cada componente de la arquitectura:
+
+- Configuración del **balanceador de carga**.
+- Instalación y puesta en marcha del **servidor NFS**.
+- Preparación de los **servidores backend**.
+- Configuración del **gestor de base de datos**.
+
+---
+
+
