@@ -264,6 +264,13 @@ sudo apt update
 sudo apt install nfs-kernel-server -y
 ```
 
+**Comentario:**
+
+* Actualiza la lista de paquetes del sistema.
+* Instala el **servidor NFS** (`nfs-kernel-server`) que permitirá compartir directorios con los servidores backend.
+
+---
+
 #### 🟩 Bloque 2: Crear directorio compartido y permisos
 
 ```bash
@@ -271,12 +278,29 @@ sudo mkdir -p /var/nfs/general
 sudo chown nobody:nogroup /var/nfs/general
 ```
 
+**Comentario:**
+
+* Crea el directorio `/var/nfs/general` que se compartirá vía NFS.
+* Asigna como propietario a `nobody:nogroup`, práctica estándar en NFS para acceso seguro y sin conflictos de permisos.
+
+---
+
 #### 🟦 Bloque 3: Configurar exportaciones NFS
 
 ```bash
 echo "/var/nfs/general 192.168.30.20(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
 echo "/var/nfs/general 192.168.30.24(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
 ```
+
+
+* Permite que las instancias backend (`192.168.30.20` y `192.168.30.24`) monten el directorio NFS.
+* Opciones explicadas:
+
+  * `rw`: lectura y escritura
+  * `sync`: escritura sincrónica para mayor seguridad de datos
+  * `no_subtree_check`: evita errores al mover archivos dentro del directorio compartido
+
+---
 
 #### 🟫 Bloque 4: Descargar y descomprimir WordPress
 
@@ -286,6 +310,13 @@ sudo wget -O /var/nfs/general/latest.zip https://wordpress.org/latest.zip
 sudo unzip /var/nfs/general/latest.zip -d /var/nfs/general/
 ```
 
+
+* Instala `unzip` para descomprimir archivos.
+* Descarga la última versión de WordPress desde el sitio oficial.
+* Descomprime WordPress directamente en el directorio compartido NFS para que todos los backend accedan al mismo contenido.
+
+---
+
 #### 🟧 Bloque 5: Asignar permisos correctos
 
 ```bash
@@ -294,12 +325,26 @@ sudo find /var/nfs/general/wordpress/ -type d -exec chmod 755 {} \;
 sudo find /var/nfs/general/wordpress/ -type f -exec chmod 644 {} \;
 ```
 
+
+* Cambia el propietario de los archivos y directorios a `www-data` (usuario de Apache).
+* Permisos:
+
+  * Directorios: `755` (lectura y ejecución para todos, escritura solo para propietario)
+  * Archivos: `644` (lectura para todos, escritura solo para propietario)
+* Garantiza que WordPress funcione correctamente y sea seguro.
+
+---
+
 #### 🟦 Bloque 6: Reiniciar NFS y exportar
 
 ```bash
 sudo systemctl restart nfs-kernel-server
 sudo exportfs -a
 ```
+
+
+* Reinicia el servicio NFS para aplicar cualquier cambio.
+* `exportfs -a` exporta todos los directorios configurados en `/etc/exports`, haciéndolos accesibles a los servidores backend.
 
 ---
 
