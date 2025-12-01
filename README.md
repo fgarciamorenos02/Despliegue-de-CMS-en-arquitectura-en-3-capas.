@@ -496,7 +496,6 @@ Vincula las subredes privadas a una tabla de rutas privada que tenga una salida 
 Configura un grupo de seguridad que permita:  
 - Tráfico **HTTP (80)** y **HTTPS (443)** desde cualquier origen.  
 - Acceso **SSH (22)** desde cualquier ubicación si es necesario para administración.  
-*(reglas de entrada para el balanceador)*
 
 ![GrupodeSeguridad](img/grupobalanceador.png)
 
@@ -505,7 +504,6 @@ Crea un grupo de seguridad que acepte:
 - Tráfico **HTTP (80)** únicamente desde el grupo de seguridad del balanceador de carga.
 - Tráfico **HTTPS (443)** desde cualquier origen.  
 - Acceso al servicio **NFS (2049)** desde el servidor NFS.  
-*(reglas de entrada para los webservers)*
 
 ![GrupodeSeguridad](img/gruposw.png)
 
@@ -513,7 +511,6 @@ Crea un grupo de seguridad que acepte:
 Define un grupo de seguridad que permita:  
 - Conexiones **NFS (2049)** únicamente desde los servidores backend.
 - Permite la comunicación **NFS (puerto 111 UDP)** restringiéndola solo al tráfico procedente del grupo de seguridad de los servidores web.
-*(reglas de entrada para NFS)*
 
 ![GrupodeSeguridad](img/gruponfs.png)
 
@@ -528,7 +525,7 @@ Configura un grupo de seguridad que acepte:
 ## 6. **Crear Instancias EC2**
 
 ### **Balanceador de carga**
-Lanza la instancia correspondiente (o el servicio que actúe como balanceador) dentro de la **subred pública**.
+Lanza la instancia que actua como balanceador dentro de la **subred pública**.
 
 ### **Servidores Web y NFS**
 Despliega tanto los **web servers** como el **servidor NFS** en la **subred privada 1**.
